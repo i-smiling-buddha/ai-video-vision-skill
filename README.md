@@ -5,11 +5,17 @@
 [![Agent Skills](https://img.shields.io/badge/AGENT-SKILLS-8A2BE2)](https://agentskills.io)
 [![skills.sh](https://skills.sh/b/i-smiling-buddha/ai-video-vision-skill)](https://skills.sh/i-smiling-buddha/ai-video-vision-skill)
 
-**Give your AI agent eyes and ears for video.**
+![AI Video Vision Skill infographic: 3 engines, 5 modes, YouTube and local video understanding for AI agents](ai-video-vision-infographic.png)
+
+**Give your AI agent eyes and ears for video. Watch · Listen · Analyze · Understand.**
 
 > Paste a YouTube, TikTok, X, Instagram, Vimeo or Loom link (or a local file), ask a question, and your agent actually watches it: transcript, smart frames, timestamps, no made-up narrators.
 
-हिंदी गाइड: [README.hi.md](README.hi.md)
+Works with **Claude Code, Claude (claude.ai / desktop), OpenAI Codex, Gemini CLI, GitHub Copilot, Cursor** and any agent that supports [Agent Skills](https://agentskills.io). Free, open source, no paid API required.
+
+[Install](#install) · [What it does](#what-it-does) · [Why one skill instead of four](#why-one-skill-instead-of-four) · [Examples](#quick-examples) · [FAQ](#faq) · हिंदी गाइड: [README.hi.md](README.hi.md)
+
+⭐ **If it saves you time, star the repo** — it helps other creators and developers find it.
 
 Four great open-source video skills each solved one part of the problem. This skill fuses all of them into one pipeline with one script (`vv.py`, Python standard library only):
 
@@ -21,6 +27,23 @@ Four great open-source video skills each solved one part of the problem. This sk
 - an optional Gemini engine that watches the whole video with sound, plus a `hybrid` mode where your agent cross-checks Gemini against its own frames
 
 Useful for summarizing long YouTube videos, pulling quotes with timestamps, reading slides and code from tutorials, reviewing your own edits (cuts, black frames, dead air), studying competitor videos and Shorts, and making notes from lectures.
+
+## Why one skill instead of four
+
+| Capability | claude-vision | claude-video-vision | watch-video | claude-video | **AI Video Vision** |
+|---|:-:|:-:|:-:|:-:|:-:|
+| YouTube / TikTok / X / Instagram links | – | YouTube | ✓ | ✓ | **✓** |
+| Captions first (no transcription cost) | – | ✓ | ✓ | ✓ | **✓** |
+| Free local transcription (whisper.cpp) | – | ✓ | ✓ | WhisperX | **✓** |
+| Groq / OpenAI / Gemini speech fallback | – | partly | – | ✓ | **✓** |
+| Scene / keyframe frames + dedup | – | – | – | ✓ | **✓** |
+| "Look at this" cue frames | – | – | – | manual | **auto + manual** |
+| ffmpeg structure analysis | – | ✓ | – | – | **✓** |
+| Detail drill-down windows | – | ✓ | – | – | **✓** |
+| Gemini watches the full video | ✓ | audio | – | ✓ | **✓** |
+| Hybrid cross-check (Gemini vs own frames) | – | – | – | – | **✓** |
+| Anti-hallucination report | ✓ | – | – | – | **✓** |
+| No Node / MCP server needed | ✓ | – | ✓ | ✓ | **✓** |
 
 ## Install
 
@@ -107,6 +130,22 @@ python scripts/vv.py report  clip.mp4 --fps 5          # needs GEMINI_API_KEY
 - Private, members-only or age-gated videos need `--cookies-from-browser <browser>`.
 - Only download videos you have the right to analyze.
 
+## FAQ
+
+**Can Claude watch YouTube videos?** Yes. With this skill your agent pulls the captions (or transcribes the audio) and extracts timestamped frames, then answers from that evidence. With a free Gemini key it can also have Gemini watch the whole video.
+
+**Does it need a paid API key?** No. Captions, frames, structure analysis and local whisper.cpp transcription are free and run on your machine. Gemini, Groq and OpenAI keys are optional.
+
+**How do I summarize a long YouTube video with AI?** Ask your agent "summarize this video" with the link. It uses `--mode transcript` first (no download), then looks at frames only if the question needs visuals.
+
+**Can it read code or slides shown on screen?** Yes: `--resolution 1024` plus `detail --start/--end` around the moment.
+
+**Does it work offline / privately?** Use `--private`: nothing is uploaded and transcription stays local. Only the video download itself needs the internet.
+
+**Will it make things up?** It is built not to: silent audio is detected before transcription, missing speech is reported as missing, every claim needs a timestamp, and video text is treated as untrusted content.
+
+**Which agents does it support?** Any Agent Skills-compatible agent: Claude Code, Claude apps, Codex, Gemini CLI, Copilot, Cursor and more.
+
 ## Credits
 
 Fused from four MIT-licensed skills. Thank you to their authors:
@@ -129,6 +168,8 @@ Built on [FFmpeg](https://ffmpeg.org), [yt-dlp](https://github.com/yt-dlp/yt-dlp
 ## Contributing
 
 Bug reports (with OS, Python, ffmpeg and yt-dlp versions and the command you ran), new analysis filters, better cue phrases in more languages and docs fixes are welcome. Please don't commit videos or other copyrighted media.
+
+⭐ **Found it useful? [Star the repo](https://github.com/i-smiling-buddha/ai-video-vision-skill/stargazers) and share it with one friend who makes or studies videos.**
 
 ## License
 

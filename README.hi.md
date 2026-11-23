@@ -5,11 +5,17 @@
 [![Agent Skills](https://img.shields.io/badge/AGENT-SKILLS-8A2BE2)](https://agentskills.io)
 [![skills.sh](https://skills.sh/b/i-smiling-buddha/ai-video-vision-skill)](https://skills.sh/i-smiling-buddha/ai-video-vision-skill)
 
-**अपने AI agent को video देखने और सुनने की ताक़त दीजिए।**
+![AI Video Vision Skill infographic](ai-video-vision-infographic.png)
+
+**अपने AI agent को video देखने और सुनने की ताक़त दीजिए। Watch · Listen · Analyze · Understand.**
 
 > YouTube, TikTok, X, Instagram, Vimeo या Loom का link (या local file) दीजिए, सवाल पूछिए, और आपका agent सच में video देखता है: transcript, smart frames, timestamps, और कोई मनगढ़ंत narrator नहीं।
 
-English: [README.md](README.md)
+Claude Code, Claude (claude.ai / desktop), OpenAI Codex, Gemini CLI, GitHub Copilot, Cursor और हर [Agent Skills](https://agentskills.io) वाले agent के साथ काम करती है। Free, open source, कोई paid API ज़रूरी नहीं।
+
+English: [README.md](README.md) · चारों skills से तुलना की table English README में है।
+
+⭐ **काम की लगे तो repo को star कीजिए** — इससे दूसरे creators और developers तक यह पहुँचती है।
 
 चार बढ़िया open-source video skills में से हर एक ने problem का एक हिस्सा solve किया था। यह skill उन चारों को एक pipeline और एक script (`vv.py`, सिर्फ़ Python standard library) में fuse करती है:
 
@@ -107,6 +113,20 @@ python scripts/vv.py report  clip.mp4 --fps 5          # GEMINI_API_KEY चा�
 - Private, members-only या age-gated videos के लिए `--cookies-from-browser <browser>` चाहिए।
 - सिर्फ़ वही videos download कीजिए जिन्हें analyze करने का आपको हक़ है।
 
+## FAQ
+
+**क्या Claude YouTube video देख सकता है?** हाँ। इस skill से agent captions लेता है (या audio transcribe करता है) और timestamp वाले frames निकालकर उन्हीं से जवाब देता है। Free Gemini key हो तो Gemini पूरी video भी देख सकता है।
+
+**क्या paid API key चाहिए?** नहीं। Captions, frames, structure analysis और local whisper.cpp — सब free और आपकी machine पर। Gemini, Groq और OpenAI keys optional हैं।
+
+**लंबी YouTube video का AI से summary कैसे बनाएँ?** Agent को link देकर बोलिए "इस video का summary दो"। पहले `--mode transcript` चलता है (download नहीं), frames तभी देखे जाते हैं जब सवाल को visuals चाहिए।
+
+**क्या screen पर दिख रहा code या slides पढ़ सकती है?** हाँ: `--resolution 1024` और उस पल के आसपास `detail --start/--end`।
+
+**क्या private / offline चलती है?** `--private` use कीजिए: कुछ upload नहीं होता, transcription local रहता है। सिर्फ़ video download के लिए internet चाहिए।
+
+**क्या यह बातें गढ़ेगी?** नहीं, इसी हिसाब से बनी है: transcription से पहले silence check, बोली न हो तो साफ़ बताती है, हर बात के साथ timestamp, और video के अंदर का text untrusted माना जाता है।
+
 ## Credits
 
 चार MIT-licensed skills को fuse करके बनी है। उनके authors का शुक्रिया:
@@ -129,6 +149,8 @@ python scripts/vv.py report  clip.mp4 --fps 5          # GEMINI_API_KEY चा�
 ## Contributing
 
 Bug reports (OS, Python, ffmpeg और yt-dlp versions और चलाया गया command के साथ), नए analysis filters, और भाषाओं के cue phrases, और docs fixes का स्वागत है। कृपया videos या कोई copyrighted media commit मत कीजिए।
+
+⭐ **काम की लगी? [Repo को star कीजिए](https://github.com/i-smiling-buddha/ai-video-vision-skill/stargazers) और किसी एक दोस्त से share कीजिए जो videos बनाता या पढ़ता है।**
 
 ## License
 
