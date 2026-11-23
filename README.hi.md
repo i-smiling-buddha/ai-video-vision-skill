@@ -145,6 +145,7 @@ python scripts/vv.py report  clip.mp4 --fps 5          # GEMINI_API_KEY चा�
 - **[Smart Model Router Skill](https://github.com/i-smiling-buddha/smart-model-router-skill)** — हर coding task को सबसे सस्ते भरोसेमंद model पर भेजिए। `npx skills add i-smiling-buddha/smart-model-router-skill`
 - **[AI Image Recognition Skill](https://github.com/i-smiling-buddha/ai-image-recognition-skill)** — असली image file पर transparency, format, size, colors, blur और metadata की जाँच। `npx skills add i-smiling-buddha/ai-image-recognition-skill`
 - **[Reflection Skill](https://github.com/i-smiling-buddha/reflection-skill)** — किसी भी app या website को बाहर से study करके उसका बेहतर clean-room version बनाइए। `npx skills add i-smiling-buddha/reflection-skill`
+- **[Ultimate Blender Skill](https://github.com/i-smiling-buddha/blender-animation-skill)** — 138 Blender skills एक में: आपका agent Blender में modeling, animation और rendering करता है। `npx skills add i-smiling-buddha/blender-animation-skill`
 
 ## Contributing
 
