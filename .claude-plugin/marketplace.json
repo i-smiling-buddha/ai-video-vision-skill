@@ -1,0 +1,13 @@
+{
+  "name": "ai-video-vision-skill",
+  "owner": { "name": "Smiling Buddha", "url": "https://desitechnology.com" },
+  "plugins": [
+    {
+      "name": "ai-video-vision-skill",
+      "source": "./",
+      "description": "Let your AI agent watch any video: captions-first transcripts, local or cloud Whisper, scene-aware frames, ffmpeg structure analysis and an optional Gemini engine.",
+      "version": "1.0.0",
+      "license": "MIT"
+    }
+  ]
+}

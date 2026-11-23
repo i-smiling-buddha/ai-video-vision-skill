@@ -1,0 +1,10 @@
+{
+  "name": "ai-video-vision-skill",
+  "version": "1.0.0",
+  "description": "Watch and understand any video (YouTube, TikTok, X, Instagram, Vimeo, Loom or local files): transcripts, smart frames, structure analysis, drill-down and an optional Gemini engine with anti-hallucination reports.",
+  "author": { "name": "Smiling Buddha", "url": "https://desitechnology.com" },
+  "homepage": "https://github.com/i-smiling-buddha/ai-video-vision-skill",
+  "repository": "https://github.com/i-smiling-buddha/ai-video-vision-skill",
+  "license": "MIT",
+  "keywords": ["video", "video-understanding", "youtube", "transcript", "whisper", "gemini", "ffmpeg", "agent-skills"]
+}
