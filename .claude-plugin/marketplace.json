@@ -6,7 +6,7 @@
       "name": "ai-video-vision-skill",
       "source": "./",
       "description": "Let your AI agent watch any video: captions-first transcripts, local or cloud Whisper, scene-aware frames, ffmpeg structure analysis and an optional Gemini engine.",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "license": "MIT"
     }
   ]

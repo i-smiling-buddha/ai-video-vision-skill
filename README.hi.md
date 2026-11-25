@@ -3,6 +3,7 @@
 [![Stars](https://img.shields.io/github/stars/i-smiling-buddha/ai-video-vision-skill?style=flat&label=STARS)](https://github.com/i-smiling-buddha/ai-video-vision-skill/stargazers)
 [![License: MIT](https://img.shields.io/badge/LICENSE-MIT-blue)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/AGENT-SKILLS-8A2BE2)](https://agentskills.io)
+[![CI](https://github.com/i-smiling-buddha/ai-video-vision-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/i-smiling-buddha/ai-video-vision-skill/actions/workflows/ci.yml)
 [![skills.sh](https://skills.sh/b/i-smiling-buddha/ai-video-vision-skill)](https://skills.sh/i-smiling-buddha/ai-video-vision-skill)
 
 ![AI Video Vision Skill infographic](ai-video-vision-infographic.png)
@@ -51,7 +52,7 @@ npx skills add i-smiling-buddha/ai-video-vision-skill
 
 - Python 3.10+
 - [FFmpeg](https://ffmpeg.org) (`ffmpeg` + `ffprobe`) और links के लिए [yt-dlp](https://github.com/yt-dlp/yt-dlp)
-- Optional: free local transcription के लिए [whisper.cpp](https://github.com/ggml-org/whisper.cpp); cloud features के लिए Gemini, Groq या OpenAI key
+- Optional: free local transcription के लिए [whisper.cpp](https://github.com/ggml-org/whisper.cpp), OCR के लिए [Tesseract](https://github.com/tesseract-ocr/tesseract); cloud features के लिए Gemini, Groq या OpenAI key
 
 Check और install (सिर्फ़ user-level, खुद से कभी sudo नहीं):
 
@@ -74,8 +75,20 @@ Keys `~/.config/video-vision/.env` में रखिए (`setup` यह file �
 | **Structure analysis** | Cuts, black/frozen हिस्से, silence, motion profile, blur, exposure, loudness (EBU R128) |
 | **Detail drill-down** | 2–10 s का हिस्सा 30 fps और 1024 px तक, उसी work dir में cache |
 | **Gemini report** | Summary, scene-by-scene, audio, visual details, key moments — सख़्त "narrator मत गढ़ो" rules के साथ |
+| **Auto mode** | पहले video की visual density नापती है (talking head या slides/screencast) और frames वहीं ख़र्च करती है जहाँ फ़ायदा हो; motion map और pacing (cuts/min) भी दिखाती है |
+| **Even coverage** | Two-pass scene sampling: पहले हर cut ढूँढती है, फिर frames समय में बराबर बाँटती है, ताकि तेज़ intro बाकी video के frames न खा जाए |
+| **Hook microscope** | `--hook`: पहले 10 s, 2 fps पर, एक sheet में — hook और retention सवालों के लिए |
+| **Frame timeline** | हर ★ frame के साथ दिखता है कि उस समय क्या बोला जा रहा था |
+| **Zoom** | `zoom --at 1:49 --region top-right --ocr`: prices, code और छोटे text के लिए full-resolution crop |
+| **Tutorial → steps** | `report --preset tutorial`: commands, code, file paths और URLs JSON में (Gemini) |
+| **Contact sheets** | Timestamps छपे 3×3 grids: agent लगभग एक frame की token cost में 9 पल देख लेता है |
+| **Search** | `search <work_dir> "words"`: कोई बात कब बोली गई, या screen पर कब दिखी (OCR)? |
+| **Clips & Shorts** | `clip --start --end`: MP4, vertical 1080×1920 Short/Reel या GIF काटिए |
+| **OCR** | `--ocr`: tesseract से slides, code और video में छपा text पढ़ती है (English, Hindi और भी) |
+| **Podcasts & audio** | `.mp3 / .m4a / .wav` transcript mode में चलते हैं |
+| **Download cache** | उसी link पर अगला सवाल पूछने पर दोबारा download नहीं होता |
 | **Privacy switch** | `--private`: कोई upload नहीं, सिर्फ़ local whisper |
-| **Safety** | Video के अंदर का text untrusted माना जाता है, keys logs से बाहर, हर run का एक disposable work dir |
+| **Safety** | Video के अंदर का text untrusted माना जाता है, local/private URLs मना, Whisper की गढ़ी lines ("thanks for watching") हटाई जाती हैं, keys logs से बाहर |
 
 ## Quick examples
 
@@ -86,6 +99,8 @@ Keys `~/.config/video-vision/.env` में रखिए (`setup` यह file �
 - "इस tutorial में 4:30 के आसपास screen पर जो code है, वह पढ़ो।"
 - "मेरी edit.mp4 में black frames, frozen shots और लंबी silence check करो।"
 - "इन दो Shorts को compare करो: hook, हर minute में cuts, on-screen text।"
+- "वह refund policy के बारे में कब बताती है?"
+- "मेरी video से 2:10–2:40 को vertical Short बनाकर काटो।"
 
 या खुद चलाइए:
 
@@ -95,6 +110,10 @@ python scripts/vv.py watch   "https://youtu.be/VIDEO" -q "3 main tips क्य�
 python scripts/vv.py watch   lecture.mp4 -q "12:40 पर slide पर क्या लिखा है?" --start 12:20 --end 13:00 --resolution 1024
 python scripts/vv.py analyze edit.mp4 --filters scenes,black,freeze,silence
 python scripts/vv.py detail  /tmp/vv_xxxx --start 3:08 --end 3:16
+python scripts/vv.py search  /tmp/vv_xxxx "pricing"     # कब बोला / कब दिखा?
+python scripts/vv.py zoom    /tmp/vv_xxxx --at 1:49 --region top-right --ocr   # छोटा text पढ़ें
+python scripts/vv.py report  "https://youtu.be/VIDEO" --preset tutorial         # steps JSON में
+python scripts/vv.py clip    "https://youtu.be/VIDEO" --start 1:20 --end 1:45 --vertical   # Short / Reel
 python scripts/vv.py report  clip.mp4 --fps 5          # GEMINI_API_KEY चाहिए
 ```
 
@@ -129,12 +148,17 @@ python scripts/vv.py report  clip.mp4 --fps 5          # GEMINI_API_KEY चा�
 
 ## Credits
 
-चार MIT-licensed skills को fuse करके बनी है। उनके authors का शुक्रिया:
+आठ MIT-licensed projects को fuse करके बनी है। उनके authors का शुक्रिया:
 
 - Mike Futia की [claude-vision](https://github.com/mikefutia/claude-vision): Gemini structured report और anti-hallucination rules।
 - Jordan Vasconcelos की [claude-video-vision](https://github.com/jordanrendric/claude-video-vision): ffmpeg structure analysis, detail drill-down, view sampling और frame-describer pattern।
 - Kevin (khou) की [watch-video](https://github.com/khou/watch-video): captions-first pipeline, local whisper.cpp, token-budget modes।
 - Bradley Bonanno की [claude-video](https://github.com/bradautomates/claude-video): scene/keyframe selection, perceptual dedup, cue timestamps, cloud Whisper chunking और Gemini engine।
+
+- Viktor Gamov की [watch-skill](https://github.com/gAmUssA/watch-skill) (Taoufik के claude-watch का fork, density classifier और even-coverage sampling @telaaron के): visual-density auto mode, even-coverage scene sampling, pacing, hook microscope, frame timeline।
+- subh05sus की [video-understanding-skill](https://github.com/subh05sus/video-understanding-skill): think-look-observe loop, zoom regions, Whisper hallucination filter, motion map, evidence वाले जवाब।
+- u2n4 का [video-url-analyzer-mcp](https://github.com/u2n4/video-url-analyzer-mcp): URL safety, TikTok codec-safe downloads, Gemini retry, tutorial-to-steps prompt।
+- mfrashad की [video-analyze](https://github.com/mfrashad/video-analyze): transcript से जुड़े frames और grid mode।
 
 [FFmpeg](https://ffmpeg.org), [yt-dlp](https://github.com/yt-dlp/yt-dlp) और [whisper.cpp](https://github.com/ggml-org/whisper.cpp) पर बनी है।
 
@@ -145,7 +169,7 @@ python scripts/vv.py report  clip.mp4 --fps 5          # GEMINI_API_KEY चा�
 - **[Smart Model Router Skill](https://github.com/i-smiling-buddha/smart-model-router-skill)** — हर coding task को सबसे सस्ते भरोसेमंद model पर भेजिए। `npx skills add i-smiling-buddha/smart-model-router-skill`
 - **[AI Image Recognition Skill](https://github.com/i-smiling-buddha/ai-image-recognition-skill)** — असली image file पर transparency, format, size, colors, blur और metadata की जाँच। `npx skills add i-smiling-buddha/ai-image-recognition-skill`
 - **[Reflection Skill](https://github.com/i-smiling-buddha/reflection-skill)** — किसी भी app या website को बाहर से study करके उसका बेहतर clean-room version बनाइए। `npx skills add i-smiling-buddha/reflection-skill`
-- **[Ultimate Blender Skill](https://github.com/i-smiling-buddha/blender-animation-skill)** — 138 Blender skills एक में: आपका agent Blender में modeling, animation और rendering करता है। `npx skills add i-smiling-buddha/blender-animation-skill`
+- **[AI Blender Animation Skill](https://github.com/i-smiling-buddha/ai-blender-animation-skill)** — 138 Blender skills एक में: आपका agent Blender में modeling, animation और rendering करता है। `npx skills add i-smiling-buddha/ai-blender-animation-skill`
 
 ## Contributing
 

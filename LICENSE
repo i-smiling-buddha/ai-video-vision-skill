@@ -30,4 +30,9 @@ This skill fuses ideas and adapted code from these MIT-licensed projects:
 - watch-video              Copyright (c) 2026 Kevin (khou)   https://github.com/khou/watch-video
 - claude-video             Copyright (c) 2026 Bradley Bonanno https://github.com/bradautomates/claude-video
 
+- watch-skill              Copyright (c) 2026 Bradley Bonanno and contributors  https://github.com/gAmUssA/watch-skill
+- video-understanding-skill Copyright (c) 2026 subh05sus     https://github.com/subh05sus/video-understanding-skill
+- video-url-analyzer-mcp   Copyright (c) 2026 u2n4           https://github.com/u2n4/video-url-analyzer-mcp
+- video-analyze            Copyright (c) 2026 mfrashad       https://github.com/mfrashad/video-analyze
+
 Each is distributed under the MIT License, whose text is reproduced above.

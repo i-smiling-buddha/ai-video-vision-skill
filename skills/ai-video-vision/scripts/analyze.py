@@ -105,6 +105,10 @@ def analyze(video, *, filters=ALL, start=None, end=None, scene_threshold: float 
             if ms and t is not None and float(ms.group(1)) >= scene_threshold:
                 cuts.append({"time": fmt(t + off, precise=True), "score": round(float(ms.group(1)), 1)})
         out["scene_changes"] = cuts
+        import pacing
+        from common import parse_time as _pt
+        out["pacing"] = pacing.compute([_pt(c["time"]) for c in cuts], off,
+                                       end if end is not None else (duration or off))
     if "black" in filters:
         out["black_intervals"] = _intervals(err, "black_start", "black_end", "black_duration", off)
     if "freeze" in filters:
@@ -153,6 +157,10 @@ def render(a: dict) -> str:
         L.append(f"- Scene cuts: {len(sc)}" + (": " + ", ".join(c["time"] for c in sc[:40]) if sc else ""))
         if len(sc) > 40:
             L.append(f"  (+{len(sc) - 40} more in analysis.json)")
+    if a.get("pacing") and a["pacing"]["shot_count"]:
+        pc = a["pacing"]
+        L.append(f"- Pacing: {pc['shot_count']} shots, {pc['cuts_per_minute']} cuts/min, mean shot {pc['mean_shot']}s, "
+                 f"median {pc['median_shot']}s, longest {pc['longest_shot']['seconds']}s")
     for k, label in (("black_intervals", "Black stretches"), ("freeze_intervals", "Frozen stretches"),
                      ("silence_intervals", "Silences")):
         if k in a:

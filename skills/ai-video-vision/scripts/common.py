@@ -145,7 +145,7 @@ def scaffold_config() -> None:
         "# Engine: local (frames+transcript, nothing leaves the machine except downloads),\n"
         "#         gemini (Google watches the video), hybrid (both, Claude cross-checks)\n"
         "VV_ENGINE=local\n"
-        "VV_MODE=balanced\n"
+        "VV_MODE=auto\n"
         "# Speech fallback when there are no captions: auto|whisper-cpp|groq|openai|gemini|none\n"
         "VV_TRANSCRIBER=auto\n"
         "VV_WHISPER_MODEL=base\n"

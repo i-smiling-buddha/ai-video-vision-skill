@@ -3,6 +3,7 @@
 [![Stars](https://img.shields.io/github/stars/i-smiling-buddha/ai-video-vision-skill?style=flat&label=STARS)](https://github.com/i-smiling-buddha/ai-video-vision-skill/stargazers)
 [![License: MIT](https://img.shields.io/badge/LICENSE-MIT-blue)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/AGENT-SKILLS-8A2BE2)](https://agentskills.io)
+[![CI](https://github.com/i-smiling-buddha/ai-video-vision-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/i-smiling-buddha/ai-video-vision-skill/actions/workflows/ci.yml)
 [![skills.sh](https://skills.sh/b/i-smiling-buddha/ai-video-vision-skill)](https://skills.sh/i-smiling-buddha/ai-video-vision-skill)
 
 ![AI Video Vision Skill infographic: 3 engines, 5 modes, YouTube and local video understanding for AI agents](ai-video-vision-infographic.png)
@@ -68,7 +69,7 @@ npx skills add i-smiling-buddha/ai-video-vision-skill
 
 - Python 3.10+
 - [FFmpeg](https://ffmpeg.org) (`ffmpeg` + `ffprobe`) and [yt-dlp](https://github.com/yt-dlp/yt-dlp) for links
-- Optional: [whisper.cpp](https://github.com/ggml-org/whisper.cpp) for free local transcription; a Gemini, Groq or OpenAI key for cloud features
+- Optional: [whisper.cpp](https://github.com/ggml-org/whisper.cpp) for free local transcription, [Tesseract](https://github.com/tesseract-ocr/tesseract) for OCR; a Gemini, Groq or OpenAI key for cloud features
 
 Check and install (user-level only, never sudo by itself):
 
@@ -91,8 +92,20 @@ Keys go in `~/.config/video-vision/.env` (created by `setup`). The scripts never
 | **Structure analysis** | Cuts, black/frozen stretches, silences, motion profile, blur, exposure, loudness (EBU R128) |
 | **Detail drill-down** | 2–10 s windows at up to 30 fps and 1024 px, cached in the same work dir |
 | **Gemini report** | Summary, scene-by-scene, audio, visual details, key moments, with strict "don't invent narrators" rules |
+| **Auto mode** | measures visual density first (talking head vs slides/screencast) and spends frames only where they pay off; prints a motion map and pacing (cuts/min) |
+| **Even coverage** | two-pass scene sampling: every cut is found, then frames are spread evenly in time, so a fast intro can't starve the rest |
+| **Hook microscope** | `--hook`: the first 10 s at 2 fps in one sheet, for hook and retention questions |
+| **Frame timeline** | every ★ frame shows what is said while it is on screen |
+| **Zoom** | `zoom --at 1:49 --region top-right --ocr`: full-resolution crop for prices, code and small text |
+| **Tutorial → steps** | `report --preset tutorial`: commands, code, file paths and URLs as JSON (Gemini) |
+| **Contact sheets** | 3×3 grids with burned-in timestamps: your agent sees 9 moments for about the token cost of one frame |
+| **Search** | `search <work_dir> "words"`: when was it said, or shown on screen (OCR)? |
+| **Clips & Shorts** | `clip --start --end`: cut an MP4, a vertical 1080×1920 Short/Reel or a GIF |
+| **OCR** | `--ocr`: reads slides, code and burned-in text with tesseract (English, Hindi and more) |
+| **Podcasts & audio** | `.mp3 / .m4a / .wav` work in transcript mode |
+| **Download cache** | follow-up questions on the same link don't download again |
 | **Privacy switch** | `--private`: no uploads, local whisper only |
-| **Safety** | Video text is treated as untrusted content, keys stay out of logs, one disposable work dir per run |
+| **Safety** | Video text is treated as untrusted content, local/private URLs are refused, Whisper hallucinations ("thanks for watching") are filtered, keys stay out of logs |
 
 ## Quick examples
 
@@ -103,6 +116,8 @@ Just ask your agent:
 - "Read the code on screen around 4:30 in this tutorial."
 - "Check my edit.mp4 for black frames, frozen shots and long silences."
 - "Compare these two Shorts: hook, cuts per minute, on-screen text."
+- "When does she mention the refund policy?"
+- "Cut 2:10–2:40 from my video as a vertical Short."
 
 Or run it yourself:
 
@@ -112,6 +127,10 @@ python scripts/vv.py watch   "https://youtu.be/VIDEO" -q "What are the 3 main ti
 python scripts/vv.py watch   lecture.mp4 -q "What is on the slide at 12:40?" --start 12:20 --end 13:00 --resolution 1024
 python scripts/vv.py analyze edit.mp4 --filters scenes,black,freeze,silence
 python scripts/vv.py detail  /tmp/vv_xxxx --start 3:08 --end 3:16
+python scripts/vv.py search  /tmp/vv_xxxx "pricing"     # when was it said / shown?
+python scripts/vv.py zoom    /tmp/vv_xxxx --at 1:49 --region top-right --ocr   # read small text
+python scripts/vv.py report  "https://youtu.be/VIDEO" --preset tutorial         # steps as JSON
+python scripts/vv.py clip    "https://youtu.be/VIDEO" --start 1:20 --end 1:45 --vertical   # Short / Reel
 python scripts/vv.py report  clip.mp4 --fps 5          # needs GEMINI_API_KEY
 ```
 
@@ -148,12 +167,17 @@ python scripts/vv.py report  clip.mp4 --fps 5          # needs GEMINI_API_KEY
 
 ## Credits
 
-Fused from four MIT-licensed skills. Thank you to their authors:
+Fused from eight MIT-licensed projects. Thank you to their authors:
 
 - [claude-vision](https://github.com/mikefutia/claude-vision) by Mike Futia: the Gemini structured report and anti-hallucination rules.
 - [claude-video-vision](https://github.com/jordanrendric/claude-video-vision) by Jordan Vasconcelos: ffmpeg structure analysis, detail drill-down, view sampling and the frame-describer pattern.
 - [watch-video](https://github.com/khou/watch-video) by Kevin (khou): captions-first pipeline, local whisper.cpp, token-budget modes.
 - [claude-video](https://github.com/bradautomates/claude-video) by Bradley Bonanno: scene/keyframe selection, perceptual dedup, cue timestamps, cloud Whisper chunking and the Gemini engine.
+
+- [watch-skill](https://github.com/gAmUssA/watch-skill) maintained by Viktor Gamov (fork of Taoufik’s claude-watch, with the density classifier and even-coverage sampling by @telaaron): visual-density auto mode, even-coverage scene sampling, pacing metrics, hook microscope, frame timeline.
+- [video-understanding-skill](https://github.com/subh05sus/video-understanding-skill) by subh05sus: the think-look-observe loop, zoom regions, Whisper hallucination filter, motion map and evidence-style answers.
+- [video-url-analyzer-mcp](https://github.com/u2n4/video-url-analyzer-mcp) by u2n4: URL safety checks, TikTok codec-safe downloads, Gemini retry, tutorial-to-steps prompt.
+- [video-analyze](https://github.com/mfrashad/video-analyze) by mfrashad: frames aligned to the transcript and tiled grid mode.
 
 Built on [FFmpeg](https://ffmpeg.org), [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [whisper.cpp](https://github.com/ggml-org/whisper.cpp).
 
@@ -164,11 +188,11 @@ Built on [FFmpeg](https://ffmpeg.org), [yt-dlp](https://github.com/yt-dlp/yt-dlp
 - **[Smart Model Router Skill](https://github.com/i-smiling-buddha/smart-model-router-skill)** — route each coding task to the cheapest model that can reliably do it. `npx skills add i-smiling-buddha/smart-model-router-skill`
 - **[AI Image Recognition Skill](https://github.com/i-smiling-buddha/ai-image-recognition-skill)** — real transparency, format, size, colors, blur and metadata checks on the actual image file. `npx skills add i-smiling-buddha/ai-image-recognition-skill`
 - **[Reflection Skill](https://github.com/i-smiling-buddha/reflection-skill)** — study any app or website from the outside and build a better clean-room version. `npx skills add i-smiling-buddha/reflection-skill`
-- **[Ultimate Blender Skill](https://github.com/i-smiling-buddha/blender-animation-skill)** — 138 Blender skills fused into one: your agent models, animates and renders in Blender. `npx skills add i-smiling-buddha/blender-animation-skill`
+- **[AI Blender Animation Skill](https://github.com/i-smiling-buddha/ai-blender-animation-skill)** — 138 Blender skills fused into one: your agent models, animates and renders in Blender. `npx skills add i-smiling-buddha/ai-blender-animation-skill`
 
 ## Contributing
 
-Bug reports (with OS, Python, ffmpeg and yt-dlp versions and the command you ran), new analysis filters, better cue phrases in more languages and docs fixes are welcome. Please don't commit videos or other copyrighted media.
+Run the tests with `python -m unittest discover -s tests -v` (needs only ffmpeg). Bug reports (with OS, Python, ffmpeg and yt-dlp versions and the command you ran), new analysis filters, better cue phrases in more languages and docs fixes are welcome. Please don't commit videos or other copyrighted media.
 
 ⭐ **Found it useful? [Star the repo](https://github.com/i-smiling-buddha/ai-video-vision-skill/stargazers) and share it with one friend who makes or studies videos.**
 

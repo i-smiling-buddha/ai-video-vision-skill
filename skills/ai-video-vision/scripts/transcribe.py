@@ -221,6 +221,10 @@ def transcribe(video, work: Path, *, backend: str, start=None, end=None,
                 result["source"] = f"Gemini audio ({data['model']})"
             else:
                 raise RuntimeError(f"unknown transcriber {b!r}")
+            from captions import drop_hallucinations
+            result["segments"], dropped = drop_hallucinations(result["segments"])
+            if dropped:
+                result["note"] = f"dropped {dropped} likely-hallucinated line(s) (music/silence artefacts)"
             if not result["segments"]:
                 result["note"] = f"{result['source']} found no speech"
             return result

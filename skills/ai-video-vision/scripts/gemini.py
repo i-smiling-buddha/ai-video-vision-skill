@@ -66,6 +66,19 @@ branding (only if shown), people (describe, do not name unless named on screen o
 
 Prefer reporting less with confidence over more with confabulation."""
 
+# Tutorial -> steps (adapted from u2n4/video-url-analyzer-mcp TUTORIAL_ANALYSIS_PROMPT, MIT)
+TUTORIAL_PROMPT = ACCURACY_RULES + """
+
+Extract the tutorial as JSON only (no markdown fences), exactly this shape:
+{"is_tutorial": true, "title": "...", "summary": "...", "language": "...",
+ "prerequisites": ["..."],
+ "steps": [{"step": 1, "timestamp": "MM:SS", "description": "...", "commands": ["..."],
+            "code": ["..."], "file_paths": ["..."], "ui_actions": ["click X > Y"], "notes": "..."}],
+ "final_result": "...", "tools_mentioned": ["..."], "urls_mentioned": ["..."]}
+If it is not a tutorial: {"is_tutorial": false, "description": "...", "category": "..."}.
+Copy every command, code line, file path and URL exactly as shown or spoken. Never invent a step;
+if something is unreadable, write "(unreadable)"."""
+
 DEFAULT_QUESTION = ("Give a thorough summary of this video: what is shown, any on-screen text or code, "
                     "and what is said, in chronological order.")
 
@@ -92,7 +105,27 @@ def _fail(cat: str, detail: str) -> GeminiError:
                        "No local fallback was attempted; rerun with --engine local for frames + transcript.")
 
 
-def _call(method: str, url: str, *, data=None, headers=None, timeout: float = 120):
+def _call(method: str, url: str, *, data=None, headers=None, timeout: float = 120, attempts: int = 3):
+    """HTTP with retry + backoff on 429/5xx (pattern from u2n4/video-url-analyzer-mcp, MIT).
+    File-stream uploads are sent once (a stream can't be replayed)."""
+    replayable = data is None or isinstance(data, (bytes, bytearray))
+    for attempt in range(1, attempts + 1):
+        try:
+            return _call_once(method, url, data=data, headers=headers, timeout=timeout)
+        except _Retryable as e:
+            if attempt == attempts or not replayable:
+                raise e.final
+            delay = 2 ** attempt
+            log(f"Gemini busy ({e.code}); retrying in {delay}s ({attempt}/{attempts - 1})")
+            time.sleep(delay)
+
+
+class _Retryable(Exception):
+    def __init__(self, code, final):
+        self.code, self.final = code, final
+
+
+def _call_once(method: str, url: str, *, data=None, headers=None, timeout: float = 120):
     req = Request(url, data=data, method=method, headers={"x-goog-api-key": api_key(), **(headers or {})})
     try:
         with urlopen(req, timeout=timeout) as r:
@@ -107,7 +140,10 @@ def _call(method: str, url: str, *, data=None, headers=None, timeout: float = 12
             msg = body
         cat = ("auth" if e.code in (401, 403) or "api key" in msg.lower() else "quota" if e.code == 429
                else "service" if e.code >= 500 else "rejected")
-        raise _fail(cat, f"HTTP {e.code}: {msg}") from None
+        err = _fail(cat, f"HTTP {e.code}: {msg}")
+        if e.code == 429 or e.code >= 500:
+            raise _Retryable(e.code, err) from None
+        raise err from None
     except (URLError, TimeoutError, OSError) as e:
         raise _fail("network", f"{type(e).__name__}: {getattr(e, 'reason', e)}") from None
 

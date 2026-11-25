@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import re
+import unicodedata
 from pathlib import Path
 from typing import Optional
 
@@ -112,3 +113,33 @@ def visual_cues(segs: list[dict], limit: int = 12) -> list[dict]:
         step = len(hits) / limit
         hits = [hits[int(i * step)] for i in range(limit)]
     return hits
+
+
+# Whisper's known inventions over music and silence (from subh05sus/video-understanding-skill, MIT):
+# one repeated character, a looping syllable, or stock "credits" lines.
+_STOCK = ("thanks for watching", "thank you for watching", "subtitles by the amara", "untertitel im auftrag",
+          "untertitelung des zdf", "please subscribe", "like and subscribe", "सब्सक्राइब")
+
+
+def hallucination(text: str) -> bool:
+    letters = [c for c in text.lower() if c.isalpha()]
+    if len(set(letters)) <= 2:
+        return True
+    if re.fullmatch(r"(.{1,6}?)\1{4,}", re.sub(r"\s+", "", text)):
+        return True
+    t = unicodedata.normalize("NFKC", text.lower()).strip(" .!?")
+    return len(t) < 60 and any(x in t for x in _STOCK)
+
+
+def drop_hallucinations(segs: list[dict]) -> tuple[list[dict], int]:
+    kept = [s for s in segs if not hallucination(s["text"])]
+    return kept, len(segs) - len(kept)
+
+
+def said_between(segs: list[dict], a: float, b: float, limit: int = 140) -> str:
+    """What is said while a frame is on screen (frame timeline, idea from gAmUssA/watch-skill)."""
+    words = " ".join(s["text"] for s in segs if a - 1.5 <= s["start"] < b).split()
+    text = " ".join(words)
+    if len(text) > limit:
+        text = text[:limit].rsplit(" ", 1)[0] + "…"
+    return text
